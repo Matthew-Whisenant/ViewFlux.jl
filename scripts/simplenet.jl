@@ -4,15 +4,25 @@
 include(abspath("src/viewflux.jl"))
 
 # ? Plotting options (num_epochs, epoch_plot, fps, gifname)
-plotopts = plotopts_struct(50, 5, 30, "simplenet.gif")
+plotopts =
+    let
+        # Create plotting data
+        num_epochs = 50
+        epoch_plot = 5
+        fps = 30
+        gifname = "simplenet.gif"
+
+        plotopts_struct(num_epochs, epoch_plot, fps, gifname)
+    end
+
 
 # ? Raw data options (x, y, use_cuda)
 dataopts =
     let
         # Create input and output data
-        actual(x) = 4 .* x .+ 2
+        actual(xᵢ) = 4 .* xᵢ .+ 2
         x = [Float32(i) for i = 0:10]
-        y = [actual(i) for i in x]
+        y = actual.(x)
         use_cuda = true
 
         dataopts_struct(x, y, use_cuda)
@@ -31,7 +41,7 @@ mlopts =
                         Dense(nodes => out)
                     )
                 end,
-                let nodes = 10
+                let nodes = 5
                     Chain(
                         Dense(in => nodes, sin),
                         Dense(nodes => nodes),
@@ -44,7 +54,7 @@ mlopts =
         batch_size = fill(1, num_nets)
         shuf_data = fill(false, num_nets)
         ratio = fill(0.8, num_nets)
-        seq_length = fill(1, num_nets)
+        seq_length = [1, 2]
 
         mlopts_struct(models, optimisers, batch_size, shuf_data, ratio, seq_length)
     end
