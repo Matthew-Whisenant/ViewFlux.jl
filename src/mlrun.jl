@@ -29,39 +29,39 @@ function mlrun(mlopts, dataopts, plotopts)
     @showprogress 0.1 "Training..." for epoch in 1:plotopts.num_epochs
 
         # Update epoch count
-        epoch_vec.val = push!(epoch_vec[], epoch)
+        push!(epoch_vec[], epoch)
 
         # For each network
         for i = 1:num_nets
 
-            reset!(multimlopts[i].mlmodel)
+            reset!(mlopts.model[i])
 
             # For each element in train_data
-            for d in netdata[i].train
+            for d in netdata.train[i]
 
                 # Get network gradients
                 grads = gradient(parameters[i]) do
-                    loss(d..., multimlopts[i].mlmodel)
+                    loss(d..., mlopts.model[i])
                 end
 
                 # Update network parameters
-                update!(multimlopts[i].opt, parameters[i], grads)
+                update!(mlopts.opt[i], parameters[i], grads)
 
             end
 
             # Append network losses
-            reset!(multimlopts[i].mlmodel)
-            loss_vec_train[i].val = push!(loss_vec_train[i][], loss(netdata[i].train.data..., multimlopts[i].mlmodel))
-            loss_vec_test[i].val = push!(loss_vec_test[i][], loss(netdata[i].test.data..., multimlopts[i].mlmodel))
+            reset!(mlopts.model[i])
+            loss_vec_train[i].val = push!(loss_vec_train[i][], loss(netdata.train[i].data..., mlopts.model[i]))
+            loss_vec_test[i].val = push!(loss_vec_test[i][], loss(netdata.test[i].data..., mlopts.model[i]))
 
             # Append predicted model output
-            reset!(multimlopts[i].mlmodel)
+            reset!(mlopts.model[i])
             yp_train = reduce(vcat,
-                [multimlopts[i].mlmodel(xi)[:, end] for
-                 xi in netdata[i].train.data[1]]) |> cpu
+                [mlopts.model[i](xi)[:, end] for
+                 xi in netdata.train[i].data[1]]) |> cpu
             yp_test = reduce(vcat,
-                [multimlopts[i].mlmodel(xi)[:, end] for
-                 xi in netdata[i].test.data[1]]) |> cpu
+                [mlopts[i].model[i](xi)[:, end] for
+                 xi in netdata.test[i].data[1]]) |> cpu
             yp_model.val = push!(yp_model[], [yp_train; yp_test])
 
             # Save next frame of gif
