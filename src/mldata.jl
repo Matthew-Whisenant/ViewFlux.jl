@@ -23,15 +23,19 @@ function mldata(mlopts, dataopts, mydevice)
     train_data = Vector{DataLoader}(undef, num_nets)
     test_data = Vector{DataLoader}(undef, num_nets)
 
+    # Wrap all data into a vector for Flux.jl
+    x = map(xᵢ -> [xᵢ], dataopts.x)
+    y = map(yᵢ -> [yᵢ], dataopts.y)
+
     # Data handeled differently for each model based on options
     for i ∈ 1:num_nets
 
         # Sequence based on seq_length
-        s = length(dataopts.x) - mlopts.seq_length[i] + 1
-        xtrain = [[reduce(hcat, dataopts.x[t:end-s+t])] for t ∈ 1:s]
+        s = length(x) - mlopts.seq_length[i] + 1
 
-        # Output data to match input length
-        ytrain = [[datay] for datay ∈ dataopts.y[mlopts.seq_length[1]:end]]
+        # Change input and output data to be
+        xtrain = [reduce(hcat, x[t:end-s+t]) for t ∈ 1:s]
+        ytrain = y[mlopts.seq_length[i]:end]
 
         # Make id based on training/testing ratio
         id = round(Int, mlopts.ratio[i] * length(xtrain))
