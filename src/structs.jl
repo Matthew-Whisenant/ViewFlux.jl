@@ -4,10 +4,10 @@
 
         model      | Vector{Chain}     | Create network from Chain input
         opt        | Vector{Optimiser} | Network optimiser
-        batch_size | Vector{Int64}     | Batch size for training
+        batch_size | Vector{Int}       | Batch size for training
         shuf_data  | Vector{Bool}      | Shuffle training data
         ratio      | Vector{Float64}   | Training to testing data ratio
-        seq_length | Vector{Int64}     | Length of sequence input data
+        seq_length | Vector{Int}       | Length of sequence input data
 
     Holds all network related options. Multiple networks can be held as vectors.
 
@@ -16,10 +16,10 @@ mutable struct mlopts_struct
 
     model::Vector{Chain}
     opt::Vector{Optimiser}
-    batch_size::Vector{Int64}
+    batch_size::Vector{Int}
     shuf_data::Vector{Bool}
     ratio::Vector{Float64}
-    seq_length::Vector{Int64}
+    seq_length::Vector{Int}
 
 end
 
@@ -47,9 +47,9 @@ end
 
     plotopts(num_epochs, epoch_plot, fps, gifname)
 
-        num_epochs | Int64  | Number of training epochs
-        epoch_plot | Int64  | Epoch inverval to plot on (1 is every epoch, 5 is every 5 epochs)
-        fps        | Int64  | Frames per second for gif (less is slower graph)
+        num_epochs | Int    | Number of training epochs
+        epoch_plot | Int    | Epoch inverval to plot on (1 is every epoch, 5 is every 5 epochs)
+        fps        | Int    | Frames per second for gif (less is slower graph)
         gifname    | String | Name of gif
 
     Holds plotting related options.
@@ -57,9 +57,9 @@ end
 """
 struct plotopts_struct
 
-    num_epochs::Int64
-    epoch_plot::Int64
-    fps::Int64
+    num_epochs::Int
+    epoch_plot::Int
+    fps::Int
     gifname::String
 
 end
