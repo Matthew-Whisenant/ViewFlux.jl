@@ -17,12 +17,20 @@ function mlplot(mlopts, dataopts, netdata)
     # Get number of networks
     num_nets = length(mlopts.model)
 
-    # Initial epoch network state
-    epoch_vec = Observable([0])
-    loss_vec_train = [Observable([loss(netdata.train[i].data...,
-        mlopts.model[i])]) for i = 1:num_nets]
-    loss_vec_test = [Observable([loss(netdata.test[i].data...,
-        mlopts.model[i])]) for i = 1:num_nets]
+    # Initialize observables
+    VR = Vector{Real}
+    obs =
+        (
+            # Predicted output
+            yp_model=[Observable{VR}([]) for i = 1:num_nets],
+
+            # Epoch list for slider
+            epoch_vec=Observable{VR}([]),
+
+            # Loss list
+            loss_vec_train=[Observable{Vector{VR}}([]) for i = 1:num_nets],
+            loss_vec_test=[Observable{Vector{VR}}([]) for i = 1:num_nets]
+        )
 
     # Marker shapes
     truemarker = :diamond
@@ -54,40 +62,32 @@ function mlplot(mlopts, dataopts, netdata)
     # Make top plot bigger
     rowsize!(fig.layout, 1, Relative(2 / 3))
 
-    # Make easy plotting variables
-    xp = reduce(vcat, dataopts.x)
-    yp = reduce(vcat, dataopts.y)
-
     # Epoch slider to control predicted values
-    sl = Slider(fig[3, 1], range=0:epoch_vec[][end], startvalue=0)
+    sl = Slider(fig[3, 1], range=@lift(0:$(obs.epoch_vec)[end]), startvalue=0)
 
     # Plot actual data
     scatterlines!(
         fig[1, 1],
-        xp, yp;
+        dataopts.x, dataopts.y;
         marker=truemarker,
         label="Sample Function"
     )
 
-    for i = 1:length(multimlopts)
+    for i = 1:num_nets
 
         # Train and test input
-        xp_train = (reduce(vcat, netdata[i].train.data[1])|>cpu)[:, end]
-        xp_test = (reduce(vcat, netdata[i].test.data[1])|>cpu)[:, end]
+        xp_train = (reduce(vcat, netdata.train[i].data[1])|>cpu)[:, end]
+        xp_test = (reduce(vcat, netdata.test[i].data[1])|>cpu)[:, end]
 
         # Predicted train and test output
         yp_train = reduce(vcat,
-            [multimlopts[i].mlmodel(xi)[:, end] for
-             xi in netdata[i].train.data[1]]) |> cpu
+            [mlopts.model[i](xi)[:, end] for
+             xi in netdata.train[i].data[1]]) |> cpu
         yp_test = reduce(vcat,
-            [multimlopts[i].mlmodel(xi)[:, end] for
-             xi in netdata[i].test.data[1]]) |> cpu
+            [mlopts.model[i](xi)[:, end] for
+             xi in netdata.test[i].data[1]]) |> cpu
 
         yp_model = Observable([[yp_train; yp_test]])
-
-        yp_slide = lift(sl.selected_index) do sl_i
-            yp_model.val[sl_i]
-        end
 
         markerops = [
             fill(trainmarker, length(yp_train))
@@ -97,12 +97,13 @@ function mlplot(mlopts, dataopts, netdata)
         # Predicted output
         scatterlines!(
             fig[1, 1],
-            reduce(vcat, [xp_train; xp_test]), yp_slide;
+            reduce(vcat, [xp_train; xp_test]),
+            reduce(vcat, yp_model[]);
             marker=markerops,
             label="Net " * string(i)
         )
 
-        reset!(multimlopts[i].mlmodel)
+        reset!(mlopts.model[i])
 
         # Show training and testing loss
         lines!(
