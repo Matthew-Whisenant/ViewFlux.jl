@@ -69,10 +69,10 @@ function mlrun(mlopts, dataopts, plotopts)
         # Save next frame of gif
         if mod(epoch, plotopts.epoch_plot) == 0
 
-            autolimits!.(fig.content[1:2])
             notify(obs.epoch_vec)
             obs.idx[] = epoch
             sl.selected_index[] = obs.idx[]
+            autolimits!.(fig.content[1:2])
             sleep(1 / plotopts.fps)
 
         end

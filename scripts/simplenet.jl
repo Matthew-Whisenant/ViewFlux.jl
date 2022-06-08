@@ -41,18 +41,16 @@ mlopts =
                 end,
                 let nodes = 5
                     Chain(
-                        Dense(in => nodes),
-                        Dense(nodes => nodes),
-                        Dense(nodes => out)
+                        Dense(in => out),
                     )
                 end
             ]
         num_nets = length(models)
-        optimisers = fill(Optimiser(Descent()), num_nets)
+        optimisers = fill(Optimiser(Descent(1.0f-1)), num_nets)
         batch_size = fill(1, num_nets)
         shuf_data = fill(false, num_nets)
         ratio = fill(0.5, num_nets)
-        seq_length = [1, 1]
+        seq_length = [1, 2]
 
         mlopts_struct(models, optimisers, batch_size, shuf_data, ratio, seq_length)
     end
