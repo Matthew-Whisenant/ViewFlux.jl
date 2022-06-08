@@ -7,7 +7,7 @@ include(abspath("src/viewflux.jl"))
 plotopts =
     let
         # Create plotting data
-        num_epochs = 50
+        num_epochs = 200
         epoch_plot = 5
         fps = 30
         gifname = "simplenet.gif"
@@ -36,30 +36,28 @@ mlopts =
             [
                 let nodes = 5
                     Chain(
-                        Dense(in => nodes, sin),
-                        Dense(nodes => nodes),
-                        Dense(nodes => out)
+                        Dense(in => out)
                     )
                 end,
                 let nodes = 5
                     Chain(
-                        Dense(in => nodes, sin),
+                        Dense(in => nodes),
                         Dense(nodes => nodes),
                         Dense(nodes => out)
                     )
                 end
             ]
         num_nets = length(models)
-        optimisers = fill(Optimiser(Descent(1.0f-2)), num_nets)
+        optimisers = fill(Optimiser(Descent()), num_nets)
         batch_size = fill(1, num_nets)
         shuf_data = fill(false, num_nets)
-        ratio = fill(0.8, num_nets)
-        seq_length = [1, 2]
+        ratio = fill(0.5, num_nets)
+        seq_length = [1, 1]
 
         mlopts_struct(models, optimisers, batch_size, shuf_data, ratio, seq_length)
     end
 
 # Training and visualize
-#mlrun(mlopts, dataopts, plotopts)
+mlrun(mlopts, dataopts, plotopts)
 
 return nothing
