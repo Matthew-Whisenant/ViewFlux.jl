@@ -116,6 +116,7 @@ function mlplot(mlopts, dataopts, netdata, loss)
             lines!(
                 fig[2, 1],
                 obs.epoch_vec, obs.loss_vec_train[i];
+                color=Cycled(i + 1),
                 label="Net " * string(i) * " training"
             )
 
@@ -123,6 +124,7 @@ function mlplot(mlopts, dataopts, netdata, loss)
                 fig[2, 1],
                 obs.epoch_vec, obs.loss_vec_test[i];
                 linestyle=:dash,
+                color=Cycled(i + 1),
                 label="Net " * string(i) * " testing")
 
         end

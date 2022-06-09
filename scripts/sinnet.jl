@@ -8,7 +8,7 @@ plotopts =
     let
         # Create plotting data
         num_epochs = 200
-        epoch_plot = 50
+        epoch_plot = 5
         fps = 30
         gifname = "sinnet.gif"
 
@@ -32,27 +32,27 @@ mlopts =
     let in = 1, out = 1
         models =
             [
-                let nodes = 5
+                let nodes = 10
                     Chain(
-                        Dense(in => nodes, sin),
+                        Dense(in => nodes, x -> x + sin(x)^2),
                         Dense(nodes => nodes),
                         Dense(nodes => out)
                     )
                 end,
-                let nodes = 5
+                let nodes = 10
                     Chain(
-                        Dense(in => nodes, sin),
+                        Dense(in => nodes, x -> x + sin(x)^2),
                         Dense(nodes => nodes),
                         Dense(nodes => out)
                     )
                 end
             ]
         num_nets = length(models)
-        optimisers = fill(Optimiser(ADAM(1.0f-2)), num_nets)
-        batch_size = fill(1, num_nets)
+        optimisers = fill(Optimiser(Descent(1.0f-3)), num_nets)
+        batch_size = fill(20, num_nets)
         shuf_data = fill(false, num_nets)
         ratio = fill(0.8, num_nets)
-        seq_length = [1, 2]
+        seq_length = [1, 3]
 
         mlopts_struct(models, optimisers, batch_size, shuf_data, ratio, seq_length)
     end

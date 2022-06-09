@@ -46,7 +46,7 @@ mlopts =
                 end
             ]
         num_nets = length(models)
-        optimisers = fill(Optimiser(Descent(1.0f-1)), num_nets)
+        optimisers = fill(Optimiser(ADAM(1.0f-2)), num_nets)
         batch_size = fill(1, num_nets)
         shuf_data = fill(false, num_nets)
         ratio = fill(0.5, num_nets)
