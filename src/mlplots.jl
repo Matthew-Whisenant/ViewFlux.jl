@@ -68,7 +68,7 @@ function mlplot(mlopts, dataopts, netdata, loss)
         # Plot actual data
         scatterlines!(
             fig[1, 1],
-            dataopts.x, dataopts.y;
+            reduce(vcat, dataopts.x), reduce(vcat, dataopts.y);
             marker=truemarker,
             label="Sample Function"
         )
@@ -79,7 +79,7 @@ function mlplot(mlopts, dataopts, netdata, loss)
             xp_train = (reduce(vcat, netdata.train[i].data[1])|>cpu)[:, end]
             xp_test = (reduce(vcat, netdata.test[i].data[1])|>cpu)[:, end]
 
-            xp = [xp_train; xp_test]
+            xp = reduce(vcat, [xp_train; xp_test])
 
             # Predicted train and test output
             yp_train = reduce(vcat,

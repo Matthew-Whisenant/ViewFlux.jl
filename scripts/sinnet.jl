@@ -20,7 +20,7 @@ dataopts =
     let
         # Create input and output data
         actual(xᵢ) = sin.(xᵢ) .+ 4
-        x = [Float32(i) for i ∈ range(0, 4 * π, 100)]
+        x = [[Float32(i)] for i ∈ range(0, 4 * π, 100)]
         y = [actual(i) for i in x]
         use_cuda = true
 

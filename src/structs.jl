@@ -27,9 +27,9 @@ end
 
     dataopts(x, y, use_cuda)
 
-        x        | Vector{Float32} | Input data
-        y        | Vector{Float32} | Output data
-        use_cuda | Bool            | Bool to use gpu or cpu
+        x        | Vector{Vector{Float32}} | Input data
+        y        | Vector{Vector{Float32}} | Output data
+        use_cuda | Bool                    | Bool to use gpu or cpu
 
     Holds raw data used for training and testing. Will be put
     on GPU if use_cuda is true and GPU is available.
@@ -37,8 +37,8 @@ end
 """
 struct dataopts_struct
 
-    x::Vector{Float32}
-    y::Vector{Float32}
+    x::Vector{Vector{Float32}}
+    y::Vector{Vector{Float32}}
     use_cuda::Bool
 
 end

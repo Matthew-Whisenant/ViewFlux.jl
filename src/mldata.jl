@@ -24,8 +24,8 @@ function mldata(mlopts, dataopts, mydevice)
     test_data = Vector{DataLoader}(undef, num_nets)
 
     # Wrap all data into a vector for Flux.jl
-    x = map(xᵢ -> [xᵢ], dataopts.x)
-    y = map(yᵢ -> [yᵢ], dataopts.y)
+    typeof(dataopts.x) == Array{Array{Float32,1},1} ? x = dataopts.x : x = map(xᵢ -> [xᵢ], dataopts.x)
+    typeof(dataopts.y) == Array{Array{Float32,1},1} ? y = dataopts.y : y = map(yᵢ -> [yᵢ], dataopts.y)
 
     # Data handeled differently for each model based on options
     for i ∈ 1:num_nets
