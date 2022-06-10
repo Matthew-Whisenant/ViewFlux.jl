@@ -21,7 +21,7 @@ dataopts =
     let
         # Create input and output data
         actual(xᵢ) = 4 .* xᵢ .+ 2
-        x = [Float32(i) for i = 0:10]
+        x = [[Float32(i)] for i = 0:10]
         y = actual.(x)
         use_cuda = true
 

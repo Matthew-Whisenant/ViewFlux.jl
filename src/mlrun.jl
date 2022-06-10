@@ -19,6 +19,7 @@ function mlrun(mlopts, dataopts, plotopts)
     parameters = params.(mlopts.model)
 
     # Loss function
+    #loss(x, y, model) = sum(mse(model(xi)[:, end] .+ 1.0f-4 .* sum(x -> sum(abs2, x), params(model)), yi) for (xi, yi) in zip(x, y)) / length(x)
     loss(x, y, model) = sum(mse(model(xi)[:, end], yi) for (xi, yi) in zip(x, y)) / length(x)
 
     # Set up first frame of gif
@@ -56,12 +57,13 @@ function mlrun(mlopts, dataopts, plotopts)
             reset!(mlopts.model[i])
 
             # Append predicted model output
-            yp_train = reduce(vcat,
-                [mlopts.model[i](xi)[:, end] for
-                 xi in netdata.train[i].data[1]]) |> cpu
-            yp_test = reduce(vcat,
-                [mlopts.model[i](xi)[:, end] for
-                 xi in netdata.test[i].data[1]]) |> cpu
+            yp_train = reduce.(vcat,
+                [mlopts.model[i](xi)[:, end]
+                 for xi in netdata.train[i].data[1]] |> cpu)
+            yp_test = reduce.(vcat,
+                [mlopts.model[i](xi)[:, end]
+                 for xi in netdata.test[i].data[1]] |> cpu)
+
             push!(obs.yp_model[i][], [yp_train; yp_test])
 
         end
@@ -71,7 +73,7 @@ function mlrun(mlopts, dataopts, plotopts)
 
             notify(obs.epoch_vec)
             obs.idx[] = epoch
-            sl.selected_index[] = obs.idx[]
+            sl[1].sliders[1].selected_index[] = obs.idx[]
             autolimits!.(fig.content[1:2])
             sleep(1 / plotopts.fps)
 

@@ -35,7 +35,7 @@ function mldata(mlopts, dataopts, mydevice)
 
         # Change input and output data to be
         xtrain = [reduce(hcat, x[t:end-s+t]) for t ∈ 1:s]
-        ytrain = y[mlopts.seq_length[i]:end]
+        ytrain = [reduce(hcat, y[t:t]) for t ∈ mlopts.seq_length[i]:length(dataopts.y)]
 
         # Make id based on training/testing ratio
         id = round(Int, mlopts.ratio[i] * length(xtrain))

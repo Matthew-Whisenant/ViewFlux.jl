@@ -23,9 +23,10 @@ function mlplot(mlopts, dataopts, netdata, loss)
             (
                 # Initialize observables
                 idx=Observable{Int}(1),
+                idvec=Observable{Int}(1),
 
                 # Predicted output
-                yp_model=[Observable{Vector{VF}}([]) for i = 1:num_nets],
+                yp_model=[Observable{Vector{Vector{VF}}}([]) for i = 1:num_nets],
 
                 # Epoch list for slider
                 epoch_vec=Observable{VI}([0]),
@@ -68,26 +69,20 @@ function mlplot(mlopts, dataopts, netdata, loss)
         # Plot actual data
         scatterlines!(
             fig[1, 1],
-            reduce(vcat, dataopts.x), reduce(vcat, dataopts.y);
+            @lift(getindex.(dataopts.y, $(obs.idvec)));
             marker=truemarker,
             label="Sample Function"
         )
 
         for i = 1:num_nets
 
-            # Train and test input
-            xp_train = (reduce(vcat, netdata.train[i].data[1])|>cpu)[:, end]
-            xp_test = (reduce(vcat, netdata.test[i].data[1])|>cpu)[:, end]
-
-            xp = reduce(vcat, [xp_train; xp_test])
-
             # Predicted train and test output
-            yp_train = reduce(vcat,
-                [mlopts.model[i](xi)[:, end] for
-                 xi in netdata.train[i].data[1]]) |> cpu
-            yp_test = reduce(vcat,
-                [mlopts.model[i](xi)[:, end] for
-                 xi in netdata.test[i].data[1]]) |> cpu
+            yp_train = reduce.(vcat,
+                [mlopts.model[i](xi)[:, end]
+                 for xi in netdata.train[i].data[1]] |> cpu)
+            yp_test = reduce.(vcat,
+                [mlopts.model[i](xi)[:, end]
+                 for xi in netdata.test[i].data[1]] |> cpu)
 
             push!(obs.yp_model[i][], [yp_train; yp_test])
 
@@ -106,8 +101,8 @@ function mlplot(mlopts, dataopts, netdata, loss)
             # Predicted output
             scatterlines!(
                 fig[1, 1],
-                reduce(vcat, xp),
-                @lift(reduce(vcat, $(obs.yp_model[i])[$(obs.idx)]));
+                [1:length(@lift(getindex.($(obs.yp_model[i])[$(obs.idx)], $(obs.idvec))).val);] .+ mlopts.seq_length[i],
+                @lift(getindex.($(obs.yp_model[i])[$(obs.idx)], $(obs.idvec)));
                 marker=markerops,
                 label="Net " * string(i)
             )
@@ -129,11 +124,34 @@ function mlplot(mlopts, dataopts, netdata, loss)
 
         end
 
+        # Add vertical line for epoch plot
+        vlines!(ax[2], @lift($(obs.idx) - 1), linewidth=1, color=(:white, 0.3))
+
         # Epoch slider to control predicted values
-        sl = Slider(fig[3, 1], range=@lift(0:$(obs.epoch_vec)[end]), startvalue=0)
-        connect!(obs.idx, sl.selected_index)
+        sl1 = SliderGrid(fig[3, 1],
+            (
+                label="Epoch",
+                range=@lift(0:$(obs.epoch_vec)[end]),
+                startvalue=0,
+                format="{:4d}"
+            )
+        )
+        connect!(obs.idx, sl1.sliders[1].selected_index)
+
+        # Observable slider to control predicted values
+        sl2 = SliderGrid(fig[4, 1],
+            (
+                label="Observable",
+                range=1:size(dataopts.y[1], 1),
+                startvalue=1,
+                format="{:4d}"
+            )
+        )
+        connect!(obs.idvec, sl2.sliders[1].value)
 
         Legend(fig[0, 1], fig.content[1], orientation=:horizontal, tellwidth=false, tellheight=true, framevisible=false)
+
+        sl = [sl1, sl2]
 
         return fig, obs, sl
 
